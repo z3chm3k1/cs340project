@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders</title>
+</head>
+<body>
+    <h1>Manage Orders</h1>
+
+    <!-- Orders List Table -->
+    <h2>View Orders</h2>
+    <button onclick="document.getElementById('addOrderForm').style.display='block'">Add New Order</button>
+    <table border="1">
+        <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Order Type</th>
+            <th>Total Amount</th>
+            <th>Payment Status</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Bob Lee</td>
+            <td>Delivery</td>
+            <td>$35.50</td>
+            <td>Paid</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>John Doe</td>
+            <td>Dine-in</td>
+            <td>$50.75</td>
+            <td>Pending</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Jane Doe</td>
+            <td>Pickup</td>
+            <td>$20.00</td>
+            <td>Paid</td>
+            <td><button>Delete</button></td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <!-- Add New Order Form (Initially Hidden) -->
+    <div id="addOrderForm" style="display: none;">
+        <h2>Add New Order</h2>
+        <form>
+            <label for="newCustomer">Customer:</label>
+            <input type="text" id="newCustomer" name="newCustomer">
+            <br>
+            <label for="newOrderType">Order Type:</label>
+            <select id="newOrderType" name="newOrderType">
+                <option value="Delivery">Delivery</option>
+                <option value="Pickup">Pickup</option>
+                <option value="Dine-in">Dine-in</option>
+            </select>
+            <br>
+            <label for="newTotalAmount">Total Amount:</label>
+            <input type="text" id="newTotalAmount" name="newTotalAmount">
+            <br>
+            <label for="newPaymentStatus">Payment Status:</label>
+            <select id="newPaymentStatus" name="newPaymentStatus">
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+            </select>
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <!-- Update Order Form -->
+    <h2>Update Order</h2>
+    <form id="updateOrderForm">
+        <label for="order">Select Order:</label>
+        <select id="order" name="order">
+            <option value="1">Order 1</option>
+            <option value="2">Order 2</option>
+            <option value="3">Order 3</option>
+        </select>
+        <br>
+        <label for="paymentStatus">Payment Status:</label>
+        <select id="paymentStatus" name="paymentStatus">
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+        </select>
+        <br>
+        <button type="submit">Update Order</button>
+    </form>
+
+    <a href="index.html">Back to Home</a>
+</body>
+</html>

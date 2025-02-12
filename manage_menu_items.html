@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Menu Items</title>
+</head>
+<body>
+    <h1>Manage Menu Items</h1>
+
+    <!-- Menu Items List Table -->
+    <h2>View Menu Items</h2>
+    <button onclick="document.getElementById('addMenuItemForm').style.display='block'">Add New Menu Item</button>
+    <table border="1">
+        <tr>
+            <th>Menu Item ID</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>Availability</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Cheese Pizza</td>
+            <td>$12.00</td>
+            <td>Pizza</td>
+            <td>Available</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Pepperoni Pizza</td>
+            <td>$14.50</td>
+            <td>Pizza</td>
+            <td>Available</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Coke</td>
+            <td>$2.50</td>
+            <td>Drink</td>
+            <td>Available</td>
+            <td><button>Delete</button></td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <!-- Add New Menu Item Form (Initially Hidden) -->
+    <div id="addMenuItemForm" style="display: none;">
+        <h2>Add New Menu Item</h2>
+        <form>
+            <label for="newName">Name:</label>
+            <input type="text" id="newName" name="newName">
+            <br>
+            <label for="newPrice">Price:</label>
+            <input type="text" id="newPrice" name="newPrice">
+            <br>
+            <label for="newCategory">Category:</label>
+            <input type="text" id="newCategory" name="newCategory">
+            <br>
+            <label for="newAvailabilityStatus">Availability:</label>
+            <select id="newAvailabilityStatus" name="newAvailabilityStatus">
+                <option value="true">Available</option>
+                <option value="false">Not Available</option>
+            </select>
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <!-- Update Menu Item Form -->
+    <h2>Update Menu Item</h2>
+    <form id="updateMenuItemForm">
+        <label for="menuItem">Select Menu Item:</label>
+        <select id="menuItem" name="menuItem">
+            <option value="1">Cheese Pizza</option>
+            <option value="2">Pepperoni Pizza</option>
+            <option value="3">Coke</option>
+        </select>
+        <br>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name">
+        <br>
+        <label for="price">Price:</label>
+        <input type="text" id="price" name="price">
+        <br>
+        <label for="category">Category:</label>
+        <input type="text" id="category" name="category">
+        <br>
+        <label for="availabilityStatus">Availability:</label>
+        <select id="availabilityStatus" name="availabilityStatus">
+            <option value="true">Available</option>
+            <option value="false">Not Available</option>
+        </select>
+        <br>
+        <button type="submit">Update Menu Item</button>
+    </form>
+
+    <a href="index.html">Back to Home</a>
+</body>
+</html>

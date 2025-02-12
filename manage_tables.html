@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Tables</title>
+</head>
+<body>
+    <h1>Manage Tables</h1>
+
+    <!-- Tables List Table -->
+    <h2>View Tables</h2>
+    <button onclick="document.getElementById('addTableForm').style.display='block'">Add New Table</button>
+    <table border="1">
+        <tr>
+            <th>Table ID</th>
+            <th>Table Number</th>
+            <th>Capacity</th>
+            <th>Availability Status</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>101</td>
+            <td>4</td>
+            <td>Available</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>102</td>
+            <td>6</td>
+            <td>Occupied</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>103</td>
+            <td>2</td>
+            <td>Available</td>
+            <td><button>Delete</button></td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <!-- Add New Table Form (Initially Hidden) -->
+    <div id="addTableForm" style="display: none;">
+        <h2>Add New Table</h2>
+        <form>
+            <label for="newTableNumber">Table Number:</label>
+            <input type="number" id="newTableNumber" name="newTableNumber">
+            <br>
+            <label for="newCapacity">Capacity:</label>
+            <input type="number" id="newCapacity" name="newCapacity">
+            <br>
+            <label for="newAvailabilityStatus">Availability:</label>
+            <select id="newAvailabilityStatus" name="newAvailabilityStatus">
+                <option value="true">Available</option>
+                <option value="false">Occupied</option>
+            </select>
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <!-- Update Table Availability Form -->
+    <h2>Update Table Availability</h2>
+    <form id="updateTableForm">
+        <label for="table">Select Table:</label>
+        <select id="table" name="table">
+            <option value="1">Table 101</option>
+            <option value="2">Table 102</option>
+            <option value="3">Table 103</option>
+        </select>
+        <br>
+        <label for="availabilityStatus">Availability:</label>
+        <select id="availabilityStatus" name="availabilityStatus">
+            <option value="true">Available</option>
+            <option value="false">Occupied</option>
+        </select>
+        <br>
+        <button type="submit">Update Table</button>
+    </form>
+
+    <a href="index.html">Back to Home</a>
+</body>
+</html>

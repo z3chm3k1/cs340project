@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Customers</title>
+</head>
+<body>
+    <h1>Manage Customers</h1>
+
+    <!-- Customers List Table -->
+    <h2>View Customers</h2>
+    <button onclick="document.getElementById('addCustomerForm').style.display='block'">Add New Customer</button>
+    <table border="1">
+        <tr>
+            <th>Customer ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Bob Lee</td>
+            <td>(123) 456-7890</td>
+            <td>bob.lee@email.com</td>
+            <td>123 Main St</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>John Doe</td>
+            <td>(555) 678-1234</td>
+            <td>john.doe@email.com</td>
+            <td>456 Elm St</td>
+            <td><button>Delete</button></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Jane Doe</td>
+            <td>(987) 654-3210</td>
+            <td>jane.doe@email.com</td>
+            <td>789 Oak St</td>
+            <td><button>Delete</button></td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <!-- Add New Customer Form (Initially Hidden) -->
+    <div id="addCustomerForm" style="display: none;">
+        <h2>Add New Customer</h2>
+        <form>
+            <label for="newName">Name:</label>
+            <input type="text" id="newName" name="newName">
+            <br>
+            <label for="newPhone">Phone:</label>
+            <input type="text" id="newPhone" name="newPhone">
+            <br>
+            <label for="newEmail">Email:</label>
+            <input type="email" id="newEmail" name="newEmail">
+            <br>
+            <label for="newAddress">Address:</label>
+            <input type="text" id="newAddress" name="newAddress">
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <!-- Update Customer Form -->
+    <h2>Update Customer</h2>
+    <form id="updateCustomerForm">
+        <label for="customer">Select Customer:</label>
+        <select id="customer" name="customer">
+            <option value="1">Bob Lee</option>
+            <option value="2">John Doe</option>
+            <option value="3">Jane Doe</option>
+        </select>
+        <br>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name">
+        <br>
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" name="phone">
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+        <br>
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address">
+        <br>
+        <button type="submit">Update Customer</button>
+    </form>
+
+    <a href="index.html">Back to Home</a>
+</body>
+</html>
