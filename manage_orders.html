@@ -3,10 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="CrazyPizzaStyle.css">
     <title>Manage Orders</title>
 </head>
 <body>
-    <h1>Manage Orders</h1>
+    <!-- Navigation Bar -->
+    <div class="header">
+        <h1 class = "title">Crazy Pizza Order Management</h1>
+        <body>
+            <div class="topnav">
+                <button class="navbutton" onclick="window.location.href='index.html'">Home</button>
+                <button class="navbutton" onclick="window.location.href='manage_customers.html'">Manage Customers</button>
+                <button class="navbutton" onclick="window.location.href='manage_orders.html'">Manage Orders</button>
+                <button class="navbutton" onclick="window.location.href='manage_menu_items.html'">Manage Menu Items</button>
+                <button class="navbutton" onclick="window.location.href='manage_deliveries.html'">Manage Deliveries</button>
+                <button class="navbutton" onclick="window.location.href='manage_tables.html'">Manage Tables</button>
+            </div>
+    </div>    <h1>Manage Orders</h1>
 
     <!-- Orders List Table -->
     <h2>View Orders</h2>
@@ -26,7 +39,7 @@
             <td>Delivery</td>
             <td>$35.50</td>
             <td>Paid</td>
-            <td><button>Delete</button></td>
+            <td><button class="deletebutton">Delete</button></td>
         </tr>
         <tr>
             <td>2</td>
@@ -34,7 +47,7 @@
             <td>Dine-in</td>
             <td>$50.75</td>
             <td>Pending</td>
-            <td><button>Delete</button></td>
+            <td><button class="deletebutton">Delete</button></td>
         </tr>
         <tr>
             <td>3</td>
@@ -42,7 +55,7 @@
             <td>Pickup</td>
             <td>$20.00</td>
             <td>Paid</td>
-            <td><button>Delete</button></td>
+            <td><button class="deletebutton">Delete</button></td>
         </tr>
     </table>
 

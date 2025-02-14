@@ -3,6 +3,7 @@ SET AUTOCOMMIT = 0;
 
 DROP TABLE IF EXISTS Customers, Orders, MenuItems, OrderDetails, Deliveries, Tables;
 
+-- Table to store customer information
 CREATE TABLE Customers (
     customerID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -11,6 +12,7 @@ CREATE TABLE Customers (
     address VARCHAR(255) NULL
 );
 
+-- Table to store order information
 CREATE TABLE Orders (
     orderID INT AUTO_INCREMENT PRIMARY KEY,
     customerID INT NOT NULL,
@@ -23,6 +25,7 @@ CREATE TABLE Orders (
     FOREIGN KEY (tableID) REFERENCES Tables(tableID)
 );
 
+-- Table to store menu items
 CREATE TABLE MenuItems (
     menuItemID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -31,6 +34,7 @@ CREATE TABLE MenuItems (
     availabilityStatus BOOLEAN NOT NULL
 );
 
+-- Table to store details of each order (items ordered)
 CREATE TABLE OrderDetails (
     orderDetailID INT AUTO_INCREMENT PRIMARY KEY,
     orderID INT NOT NULL,
@@ -41,6 +45,7 @@ CREATE TABLE OrderDetails (
     FOREIGN KEY (menuItemID) REFERENCES MenuItems(menuItemID)
 );
 
+-- Table to store delivery information for delivery orders
 CREATE TABLE Deliveries (
     deliveryID INT AUTO_INCREMENT PRIMARY KEY,
     orderID INT NOT NULL,
@@ -50,6 +55,7 @@ CREATE TABLE Deliveries (
     FOREIGN KEY (orderID) REFERENCES Orders(orderID)
 );
 
+-- Table to store information about restaurant tables
 CREATE TABLE Tables (
     tableID INT AUTO_INCREMENT PRIMARY KEY,
     tableNumber INT NOT NULL UNIQUE,
