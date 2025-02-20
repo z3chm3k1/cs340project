@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="CrazyPizzaStyle.css">
+    <title>Manage Order Details</title>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="header">
+        <h1 class = "title">Crazy Pizza Order Management</h1>
+        <body>
+            <div class="topnav">
+                <button class="navbutton" onclick="window.location.href='index.html'">Home</button>
+                <button class="navbutton" onclick="window.location.href='manage_customers.html'">Manage Customers</button>
+                <button class="navbutton" onclick="window.location.href='manage_orders.html'">Manage Orders</button>
+                <button class="navbutton" onclick="window.location.href='manage_menu_items.html'">Manage Menu Items</button>
+                <button class="navbutton" onclick="window.location.href='manage_deliveries.html'">Manage Deliveries</button>
+                <button class="navbutton" onclick="window.location.href='manage_tables.html'">Manage Tables</button>
+            </div>
+    </div>
+
+    <h1>Manage Order Details</h1>
+
+    <!-- Order Details List Table -->
+    <h2>View Order Details</h2>
+    <button onclick="document.getElementById('addOrderDetailForm').style.display='block'">Add New Order Detail</button>
+    <table border="1">
+        <tr>
+            <th>Order Detail ID</th>
+            <th>Order ID</th>
+            <th>Menu Item</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>1</td>
+            <td>Cheese Pizza</td>
+            <td>2</td>
+            <td>$24.00</td>
+            <td><button class="deletebutton">Delete</button></td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <!-- Add New Order Detail Form (Initially Hidden) -->
+    <div id="addOrderDetailForm" style="display: none;">
+        <h2>Add New Order Detail</h2>
+        <form>
+            <label for="newOrderID">Order ID:</label>
+            <input type="text" id="newOrderID" name="newOrderID">
+            <br>
+            <label for="newMenuItem">Menu Item:</label>
+            <input type="text" id="newMenuItem" name="newMenuItem">
+            <br>
+            <label for="newQuantity">Quantity:</label>
+            <input type="number" id="newQuantity" name="newQuantity">
+            <br>
+            <label for="newPrice">Price:</label>
+            <input type="text" id="newPrice" name="newPrice">
+            <br>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <hr>
+
+    <!-- Update Order Detail Form -->
+    <h2>Update Order Detail</h2>
+    <form id="updateOrderDetailForm">
+        <label for="orderDetail">Select Order Detail:</label>
+        <select id="orderDetail" name="orderDetail">
+            <option value="1">Order Detail 1</option>
+        </select>
+        <br>
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" name="quantity">
+        <br>
+        <label for="price">Price:</label>
+        <input type="text" id="price" name="price">
+        <br>
+        <button type="submit">Update Order Detail</button>
+    </form>
+
+    <a href="index.html">Back to Home</a>
+</body>
+</html>
