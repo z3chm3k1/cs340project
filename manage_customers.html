@@ -110,7 +110,120 @@
         <br>
         <button type="submit">Update Customer</button>
     </form>
+    <!-- Update Customer Form -->
+<form id="updateCustomerForm">
+    <label for="customer">Select Customer:</label>
+    <select id="customer" name="customer" onchange="loadCustomerData(this.value)">
+      <!-- Options will be populated dynamically -->
+    </select>
+    <!-- ... rest of the form ... -->
+  </form>
+  
+  <script>
+    // Populate the customer dropdown
+    async function populateCustomerDropdown() {
+      const response = await fetch('/api/customers');
+      const customers = await response.json();
+      const dropdown = document.getElementById('customer');
+      dropdown.innerHTML = customers.map(c => 
+        `<option value="${c.customerID}">${c.name}</option>`
+      ).join('');
+    }
+  
+    // Load customer data into form fields
+    async function loadCustomerData(customerID) {
+      const response = await fetch(`/api/customers/${customerID}`);
+      const customer = await response.json();
+      document.getElementById('name').value = customer.name;
+      document.getElementById('phone').value = customer.phone;
+      document.getElementById('email').value = customer.email;
+      document.getElementById('address').value = customer.address;
+    }
+  
+    // Call this on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      await populateCustomerDropdown();
+      await loadCustomerData(document.getElementById('customer').value);
+    });
+  </script>
 
     <a href="index.html">Back to Home</a>
 </body>
+
+<!-- Javascript to update UI  -->
+    <script>
+        // Fetch and display customers on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+          await fetchCustomers();
+        });
+      
+        // Fetch all customers and populate the table
+        async function fetchCustomers() {
+          const response = await fetch('/api/customers');
+          const customers = await response.json();
+          const tbody = document.querySelector('table').querySelector('tbody') || document.querySelector('table').createTBody();
+          tbody.innerHTML = ''; // Clear existing rows
+      
+          customers.forEach(customer => {
+            const row = `
+              <tr data-id="${customer.customerID}">
+                <td>${customer.customerID}</td>
+                <td>${customer.name}</td>
+                <td>${customer.phone}</td>
+                <td>${customer.email}</td>
+                <td>${customer.address}</td>
+                <td><button class="deletebutton" onclick="deleteCustomer(${customer.customerID})">Delete</button></td>
+              </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', row);
+          });
+        }
+      
+        // Add new customer
+        document.getElementById('addCustomerForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = {
+            name: document.getElementById('newName').value,
+            phone: document.getElementById('newPhone').value,
+            email: document.getElementById('newEmail').value,
+            address: document.getElementById('newAddress').value
+          };
+      
+          await fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+      
+          document.getElementById('addCustomerForm').style.display = 'none';
+          await fetchCustomers();
+        });
+      
+        // Update customer
+        document.getElementById('updateCustomerForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const customerID = document.getElementById('customer').value;
+          const formData = {
+            name: document.getElementById('name').value,
+            phone: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+            address: document.getElementById('address').value
+          };
+      
+          await fetch(`/api/customers/${customerID}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+      
+          await fetchCustomers();
+        });
+      
+        // Delete customer
+        async function deleteCustomer(customerID) {
+          await fetch(`/api/customers/${customerID}`, { method: 'DELETE' });
+          await fetchCustomers();
+        }
+      </script>
 </html>
+
