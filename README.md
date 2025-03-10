@@ -1,6 +1,3 @@
-Crazy Pizza Order Management System -
-
-Folder Structure 
 cs340_project/
 │
 ├── app.js                     # Main entry point
