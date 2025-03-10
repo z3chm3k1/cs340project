@@ -53,12 +53,12 @@ cs340project/
 │   │
 │   └── js/
 │       ├── common.js
-│       ├── customers.js
-│       ├── deliveries.js
-│       ├── menu-items.js
-│       ├── order-details.js
-│       ├── orders.js
-│       └── tables.js
+│       
+│       
+│       
+│       
+│       
+│       
 │
 └── routes/
     ├── customers.js
