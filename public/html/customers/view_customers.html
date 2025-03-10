@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>View Customers - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/customers/view_customers.html" class="nav-link">Customers</a>
+            <a href="/html/customers/add_customer.html" class="nav-link">Add Customer</a>
+            <a href="/html/customers/update_customer.html" class="nav-link">Update Customer</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>View Customers</h1>
+        
+        <!-- Customers List Table -->
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="customersTableBody">
+                <!-- Customers will be loaded here dynamically -->
+                <tr>
+                    <td colspan="6" class="text-center">Loading customers...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a href="/" class="back-link">Back to Home</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch and display customers on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, fetching customers...");
+            await fetchCustomers();
+        });
+        
+        // Fetch all customers and populate the table
+        async function fetchCustomers() {
+            try {
+                console.log("Fetching customers from API...");
+                const customers = await apiRequest('/api/customers');
+                
+                // Get the table body
+                const tbody = document.getElementById('customersTableBody');
+                tbody.innerHTML = ''; // Clear existing rows
+                
+                if (customers.length === 0) {
+                    console.log("No customers found");
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="6" class="text-center">No customers found</td>';
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                customers.forEach(customer => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${customer.customerID}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.phone}</td>
+                        <td>${customer.email || ''}</td>
+                        <td>${customer.address || ''}</td>
+                        <td><button class="delete-button" onclick="deleteCustomer(${customer.customerID})">Delete</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching customers:', error);
+                showError('Failed to load customers. Please try again.');
+            }
+        }
+        
+        // Delete customer
+        async function deleteCustomer(customerID) {
+            if (!confirmAction('Are you sure you want to delete this customer?')) {
+                return;
+            }
+            
+            try {
+                await apiRequest(`/api/customers/${customerID}`, 'DELETE');
+                await fetchCustomers();
+                showSuccess('Customer deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+                showError('Failed to delete customer: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

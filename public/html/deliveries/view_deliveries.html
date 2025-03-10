@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>View Deliveries - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/deliveries/view_deliveries.html" class="nav-link">Deliveries</a>
+            <a href="/html/deliveries/add_delivery.html" class="nav-link">Add Delivery</a>
+            <a href="/html/deliveries/update_delivery.html" class="nav-link">Update Delivery</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>View Deliveries</h1>
+        
+        <!-- Deliveries List Table -->
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Delivery ID</th>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Delivery Company</th>
+                    <th>Delivery Status</th>
+                    <th>Delivery Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="deliveriesTableBody">
+                <!-- Deliveries will be loaded here dynamically -->
+                <tr>
+                    <td colspan="7" class="text-center">Loading deliveries...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a href="/" class="back-link">Back to Home</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch and display deliveries on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, fetching deliveries...");
+            await fetchDeliveries();
+        });
+        
+        // Fetch all deliveries and populate the table
+        async function fetchDeliveries() {
+            try {
+                console.log("Fetching deliveries from API...");
+                const deliveries = await apiRequest('/api/deliveries');
+                
+                // Get the table body
+                const tbody = document.getElementById('deliveriesTableBody');
+                tbody.innerHTML = ''; // Clear existing rows
+                
+                if (deliveries.length === 0) {
+                    console.log("No deliveries found");
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="7" class="text-center">No deliveries found</td>';
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                deliveries.forEach(delivery => {
+                    // Format the delivery time
+                    const deliveryTime = delivery.deliveryTime ? formatDate(delivery.deliveryTime) : 'Not scheduled';
+                    
+                    // Set status classes
+                    let statusClass = '';
+                    if (delivery.deliveryStatus === 'Delivered') {
+                        statusClass = 'status-available';
+                    } else if (delivery.deliveryStatus === 'Out for Delivery') {
+                        statusClass = 'status-pending';
+                    }
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${delivery.deliveryID}</td>
+                        <td>${delivery.orderID}</td>
+                        <td>${delivery.customerName}</td>
+                        <td>${delivery.deliveryCompany}</td>
+                        <td class="${statusClass}">${delivery.deliveryStatus}</td>
+                        <td>${deliveryTime}</td>
+                        <td><button class="delete-button" onclick="deleteDelivery(${delivery.deliveryID})">Delete</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching deliveries:', error);
+                showError('Failed to load deliveries. Please try again.');
+            }
+        }
+        
+        // Delete delivery
+        async function deleteDelivery(deliveryID) {
+            if (!confirmAction('Are you sure you want to delete this delivery?')) {
+                return;
+            }
+            
+            try {
+                await apiRequest(`/api/deliveries/${deliveryID}`, 'DELETE');
+                await fetchDeliveries();
+                showSuccess('Delivery deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting delivery:', error);
+                showError('Failed to delete delivery: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

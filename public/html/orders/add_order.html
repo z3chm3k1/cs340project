@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Add Order - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/orders/view_orders.html" class="nav-link">Orders</a>
+            <a href="/html/orders/add_order.html" class="nav-link">Add Order</a>
+            <a href="/html/orders/update_order.html" class="nav-link">Update Order</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Add New Order</h1>
+        
+        <!-- Add Order Form -->
+        <div class="form-container">
+            <form id="addOrderForm">
+                <div class="form-group">
+                    <label for="customerID" class="form-label">Customer:</label>
+                    <select id="customerID" name="customerID" class="form-select" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="orderType" class="form-label">Order Type:</label>
+                    <select id="orderType" name="orderType" class="form-select" required onchange="toggleTableSelection()">
+                        <option value="Delivery">Delivery</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Dine-in">Dine-in</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="tableSelectionDiv" style="display: none;">
+                    <label for="tableID" class="form-label">Table:</label>
+                    <select id="tableID" name="tableID" class="form-select">
+                        <option value="">Loading tables...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="totalAmount" class="form-label">Total Amount ($):</label>
+                    <input type="number" id="totalAmount" name="totalAmount" step="0.01" min="0" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="paymentStatus" class="form-label">Payment Status:</label>
+                    <select id="paymentStatus" name="paymentStatus" class="form-select" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="form-button">Add Order</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/orders/view_orders.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/orders/view_orders.html" class="back-link">Back to Orders</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch customers and tables on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, initializing...");
+            await Promise.all([
+                populateCustomerDropdown(),
+                populateTableDropdown()
+            ]);
+            
+            // Initialize the table selection visibility
+            toggleTableSelection();
+        });
+        
+        // Toggle table selection based on order type
+        function toggleTableSelection() {
+            const orderType = document.getElementById('orderType').value;
+            const tableDiv = document.getElementById('tableSelectionDiv');
+            
+            if (orderType === 'Dine-in') {
+                tableDiv.style.display = 'block';
+                document.getElementById('tableID').required = true;
+            } else {
+                tableDiv.style.display = 'none';
+                document.getElementById('tableID').required = false;
+                document.getElementById('tableID').value = "";
+            }
+        }
+        
+        // Populate the customer dropdown
+        async function populateCustomerDropdown() {
+            try {
+                const customers = await apiRequest('/api/customers');
+                const dropdown = document.getElementById('customerID');
+                
+                dropdown.innerHTML = '';
+                
+                if (customers.length === 0) {
+                    dropdown.innerHTML = '<option value="">No customers available</option>';
+                    return;
+                }
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a customer...';
+                dropdown.appendChild(defaultOption);
+                
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.customerID;
+                    option.textContent = customer.name;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating customer dropdown:', error);
+                showError('Failed to load customers. Please try again.');
+            }
+        }
+        
+        // Populate the table dropdown
+        async function populateTableDropdown() {
+            try {
+                const tables = await apiRequest('/api/dropdown/tables');
+                const dropdown = document.getElementById('tableID');
+                
+                dropdown.innerHTML = '';
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a table...';
+                dropdown.appendChild(defaultOption);
+                
+                if (tables.length === 0) {
+                    dropdown.innerHTML += '<option value="">No tables available</option>';
+                    return;
+                }
+                
+                tables.forEach(table => {
+                    const option = document.createElement('option');
+                    option.value = table.tableID;
+                    option.textContent = `Table ${table.tableNumber}`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating table dropdown:', error);
+                showError('Failed to load tables. Please try again.');
+            }
+        }
+        
+        // Add order form submission
+        document.getElementById('addOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderType = document.getElementById('orderType').value;
+            let tableID = null;
+            
+            if (orderType === 'Dine-in') {
+                tableID = document.getElementById('tableID').value;
+                if (!tableID) {
+                    showError('Please select a table for dine-in orders.');
+                    return;
+                }
+            }
+            
+            const formData = {
+                customerID: document.getElementById('customerID').value,
+                tableID: tableID,
+                orderType: orderType,
+                totalAmount: document.getElementById('totalAmount').value,
+                paymentStatus: document.getElementById('paymentStatus').value
+            };
+            
+            try {
+                const response = await apiRequest('/api/orders', 'POST', formData);
+                
+                showSuccess('Order added successfully!');
+                
+                // Reset the form
+                document.getElementById('addOrderForm').reset();
+                toggleTableSelection();
+                
+                // Redirect to view orders after a short delay
+                setTimeout(() => {
+                    navigateTo('/html/orders/view_orders.html');
+                }, 1000);
+            } catch (error) {
+                console.error('Error adding order:', error);
+                showError('Failed to add order: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Update Menu Item - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/menu-items/view_menu_items.html" class="nav-link">Menu Items</a>
+            <a href="/html/menu-items/add_menu_item.html" class="nav-link">Add Menu Item</a>
+            <a href="/html/menu-items/update_menu_item.html" class="nav-link">Update Menu Item</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Update Menu Item</h1>
+        
+        <!-- Update Menu Item Form -->
+        <div class="form-container">
+            <form id="updateMenuItemForm">
+                <div class="form-group">
+                    <label for="menuItemSelect" class="form-label">Select Menu Item:</label>
+                    <select id="menuItemSelect" name="menuItemSelect" class="form-select" onchange="loadMenuItemData(this.value)" required>
+                        <option value="">Loading menu items...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name" class="form-label">Name:</label>
+                    <input type="text" id="name" name="name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="price" class="form-label">Price ($):</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category" class="form-label">Category:</label>
+                    <input type="text" id="category" name="category" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="availabilityStatus" class="form-label">Availability:</label>
+                    <select id="availabilityStatus" name="availabilityStatus" class="form-select" required>
+                        <option value="true">Available</option>
+                        <option value="false">Not Available</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="form-button">Update Menu Item</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/menu-items/view_menu_items.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/menu-items/view_menu_items.html" class="back-link">Back to Menu Items</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch menu items and populate dropdown on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, fetching menu items...");
+            await populateMenuItemDropdown();
+        });
+        
+        // Populate the menu item dropdown
+        async function populateMenuItemDropdown() {
+            try {
+                const menuItems = await apiRequest('/api/menuitems');
+                const dropdown = document.getElementById('menuItemSelect');
+                
+                dropdown.innerHTML = '';
+                
+                if (menuItems.length === 0) {
+                    dropdown.innerHTML = '<option value="">No menu items available</option>';
+                    return;
+                }
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a menu item...';
+                dropdown.appendChild(defaultOption);
+                
+                menuItems.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.menuItemID;
+                    option.textContent = `${item.name} (${formatPrice(item.price)})`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating dropdown:', error);
+                showError('Failed to load menu items. Please try again.');
+            }
+        }
+        
+        // Load menu item data into form
+        async function loadMenuItemData(menuItemID) {
+            if (!menuItemID) {
+                // Clear the form if no menu item selected
+                document.getElementById('name').value = '';
+                document.getElementById('price').value = '';
+                document.getElementById('category').value = '';
+                document.getElementById('availabilityStatus').selectedIndex = 0;
+                return;
+            }
+            
+            try {
+                const menuItem = await apiRequest(`/api/menuitems/${menuItemID}`);
+                
+                document.getElementById('name').value = menuItem.name || '';
+                document.getElementById('price').value = menuItem.price || '';
+                document.getElementById('category').value = menuItem.category || '';
+                document.getElementById('availabilityStatus').value = menuItem.availabilityStatus ? 'true' : 'false';
+            } catch (error) {
+                console.error('Error loading menu item data:', error);
+                showError('Failed to load menu item details: ' + error.message);
+            }
+        }
+        
+        // Update menu item form submission
+        document.getElementById('updateMenuItemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const menuItemID = document.getElementById('menuItemSelect').value;
+            if (!menuItemID) {
+                showError('Please select a menu item to update.');
+                return;
+            }
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                price: document.getElementById('price').value,
+                category: document.getElementById('category').value,
+                availabilityStatus: document.getElementById('availabilityStatus').value
+            };
+            
+            try {
+                await apiRequest(`/api/menuitems/${menuItemID}`, 'PUT', formData);
+                
+                showSuccess('Menu item updated successfully!');
+                
+                // Refresh the dropdown to reflect any name changes
+                await populateMenuItemDropdown();
+                
+                // Reset the selection
+                document.getElementById('menuItemSelect').value = '';
+                
+                // Clear form fields
+                document.getElementById('name').value = '';
+                document.getElementById('price').value = '';
+                document.getElementById('category').value = '';
+                document.getElementById('availabilityStatus').selectedIndex = 0;
+            } catch (error) {
+                console.error('Error updating menu item:', error);
+                showError('Failed to update menu item: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

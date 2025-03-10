@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Update Customer - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/customers/view_customers.html" class="nav-link">Customers</a>
+            <a href="/html/customers/add_customer.html" class="nav-link">Add Customer</a>
+            <a href="/html/customers/update_customer.html" class="nav-link">Update Customer</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Update Customer</h1>
+        
+        <!-- Update Customer Form -->
+        <div class="form-container">
+            <form id="updateCustomerForm">
+                <div class="form-group">
+                    <label for="customerSelect" class="form-label">Select Customer:</label>
+                    <select id="customerSelect" name="customerSelect" class="form-select" onchange="loadCustomerData(this.value)" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name" class="form-label">Name:</label>
+                    <input type="text" id="name" name="name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone:</label>
+                    <input type="text" id="phone" name="phone" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" id="email" name="email" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="address" class="form-label">Address:</label>
+                    <input type="text" id="address" name="address" class="form-input">
+                </div>
+                
+                <button type="submit" class="form-button">Update Customer</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/customers/view_customers.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/customers/view_customers.html" class="back-link">Back to Customers</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch customers and populate dropdown on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, fetching customers...");
+            await populateCustomerDropdown();
+        });
+        
+        // Populate the customer dropdown
+        async function populateCustomerDropdown() {
+            try {
+                const customers = await apiRequest('/api/customers');
+                const dropdown = document.getElementById('customerSelect');
+                
+                dropdown.innerHTML = '';
+                
+                if (customers.length === 0) {
+                    dropdown.innerHTML = '<option value="">No customers available</option>';
+                    return;
+                }
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a customer...';
+                dropdown.appendChild(defaultOption);
+                
+                customers.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.customerID;
+                    option.textContent = c.name;
+                    dropdown.appendChild(option);
+                });
+                
+                // Load the first customer's data if available
+                if (customers.length > 0) {
+                    // Don't auto-select, leave the default "Select a customer..." option
+                }
+            } catch (error) {
+                console.error('Error populating dropdown:', error);
+                showError('Failed to load customers. Please try again.');
+            }
+        }
+        
+        // Load customer data into form
+        async function loadCustomerData(customerID) {
+            if (!customerID) {
+                // Clear the form if no customer selected
+                document.getElementById('name').value = '';
+                document.getElementById('phone').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('address').value = '';
+                return;
+            }
+            
+            try {
+                const customer = await apiRequest(`/api/customers/${customerID}`);
+                
+                document.getElementById('name').value = customer.name || '';
+                document.getElementById('phone').value = customer.phone || '';
+                document.getElementById('email').value = customer.email || '';
+                document.getElementById('address').value = customer.address || '';
+            } catch (error) {
+                console.error('Error loading customer data:', error);
+                showError('Failed to load customer details: ' + error.message);
+            }
+        }
+        
+        // Update customer form submission
+        document.getElementById('updateCustomerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const customerID = document.getElementById('customerSelect').value;
+            if (!customerID) {
+                showError('Please select a customer to update.');
+                return;
+            }
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                address: document.getElementById('address').value
+            };
+            
+            try {
+                await apiRequest(`/api/customers/${customerID}`, 'PUT', formData);
+                
+                showSuccess('Customer updated successfully!');
+                
+                // Refresh the dropdown to reflect any name changes
+                await populateCustomerDropdown();
+                
+                // Reset the selection
+                document.getElementById('customerSelect').value = '';
+                
+                // Clear form fields
+                document.getElementById('name').value = '';
+                document.getElementById('phone').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('address').value = '';
+            } catch (error) {
+                console.error('Error updating customer:', error);
+                showError('Failed to update customer: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

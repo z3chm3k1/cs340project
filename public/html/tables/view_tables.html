@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>View Tables - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/tables/view_tables.html" class="nav-link">Tables</a>
+            <a href="/html/tables/add_table.html" class="nav-link">Add Table</a>
+            <a href="/html/tables/update_table.html" class="nav-link">Update Table</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>View Tables</h1>
+        
+        <!-- Tables List Table -->
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Table ID</th>
+                    <th>Table Number</th>
+                    <th>Capacity</th>
+                    <th>Availability</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tablesTableBody">
+                <!-- Tables will be loaded here dynamically -->
+                <tr>
+                    <td colspan="5" class="text-center">Loading tables...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a href="/" class="back-link">Back to Home</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch and display tables on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, fetching tables...");
+            await fetchTables();
+        });
+        
+        // Fetch all tables and populate the table
+        async function fetchTables() {
+            try {
+                console.log("Fetching tables from API...");
+                const tables = await apiRequest('/api/tables');
+                
+                // Get the table body
+                const tbody = document.getElementById('tablesTableBody');
+                tbody.innerHTML = ''; // Clear existing rows
+                
+                if (tables.length === 0) {
+                    console.log("No tables found");
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="5" class="text-center">No tables found</td>';
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                tables.forEach(table => {
+                    const row = document.createElement('tr');
+                    const availabilityText = table.availabilityStatus ? 'Available' : 'Not Available';
+                    const availabilityClass = table.availabilityStatus ? 'status-available' : 'status-unavailable';
+                    
+                    row.innerHTML = `
+                        <td>${table.tableID}</td>
+                        <td>${table.tableNumber}</td>
+                        <td>${table.Capacity}</td>
+                        <td class="${availabilityClass}">${availabilityText}</td>
+                        <td><button class="delete-button" onclick="deleteTable(${table.tableID})">Delete</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching tables:', error);
+                showError('Failed to load tables. Please try again.');
+            }
+        }
+        
+        // Delete table
+        async function deleteTable(tableID) {
+            if (!confirmAction('Are you sure you want to delete this table?')) {
+                return;
+            }
+            
+            try {
+                await apiRequest(`/api/tables/${tableID}`, 'DELETE');
+                await fetchTables();
+                showSuccess('Table deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting table:', error);
+                showError('Failed to delete table: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
