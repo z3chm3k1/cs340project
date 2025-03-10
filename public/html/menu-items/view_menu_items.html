@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>View Menu Items - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/menu-items/view_menu_items.html" class="nav-link">Menu Items</a>
+            <a href="/html/menu-items/add_menu_item.html" class="nav-link">Add Menu Item</a>
+            <a href="/html/menu-items/update_menu_item.html" class="nav-link">Update Menu Item</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>View Menu Items</h1>
+        
+        <!-- Menu Items List Table -->
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Menu Item ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                    <th>Availability</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="menuItemsTableBody">
+                <!-- Menu items will be loaded here dynamically -->
+                <tr>
+                    <td colspan="6" class="text-center">Loading menu items...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a href="/" class="back-link">Back to Home</a>
+    </div>
+ <!-- JavaScript -->
+ <script src="/js/common.js"></script>
+ <script>
+    // Fetch and display menu items on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log("Page loaded, fetching menu items...");
+        await fetchMenuItems();
+    });
+    
+    // Fetch all menu items and populate the table
+    async function fetchMenuItems() {
+        try {
+            console.log("Fetching menu items from API...");
+            const menuItems = await apiRequest('/api/menuitems');
+            
+            // Get the table body
+            const tbody = document.getElementById('menuItemsTableBody');
+            tbody.innerHTML = ''; // Clear existing rows
+            
+            if (menuItems.length === 0) {
+                console.log("No menu items found");
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="6" class="text-center">No menu items found</td>';
+                tbody.appendChild(row);
+                return;
+            }
+            
+            menuItems.forEach(item => {
+                const row = document.createElement('tr');
+                const availabilityText = item.availabilityStatus ? 'Available' : 'Not Available';
+                const availabilityClass = item.availabilityStatus ? 'status-available' : 'status-unavailable';
+                
+                row.innerHTML = `
+                    <td>${item.menuItemID}</td>
+                    <td>${item.name}</td>
+                    <td>${formatPrice(item.price)}</td>
+                    <td>${item.category}</td>
+                    <td class="${availabilityClass}">${availabilityText}</td>
+                    <td><button class="delete-button" onclick="deleteMenuItem(${item.menuItemID})">Delete</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error fetching menu items:', error);
+            showError('Failed to load menu items. Please try again.');
+        }
+    }
+    
+    // Delete menu item
+    async function deleteMenuItem(menuItemID) {
+        if (!confirmAction('Are you sure you want to delete this menu item?')) {
+            return;
+        }
+        
+        try {
+            await apiRequest(`/api/menuitems/${menuItemID}`, 'DELETE');
+            await fetchMenuItems();
+            showSuccess('Menu item deleted successfully!');
+        } catch (error) {
+            console.error('Error deleting menu item:', error);
+            showError('Failed to delete menu item: ' + error.message);
+        }
+    }
+</script>
+</body>
+</html>

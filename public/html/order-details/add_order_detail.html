@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Add Order Detail - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/order-details/view_order_details.html" class="nav-link">Order Details</a>
+            <a href="/html/order-details/add_order_detail.html" class="nav-link">Add Order Detail</a>
+            <a href="/html/order-details/update_order_detail.html" class="nav-link">Update Order Detail</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Add New Order Detail</h1>
+        
+        <!-- Add Order Detail Form -->
+        <div class="form-container">
+            <form id="addOrderDetailForm">
+                <div class="form-group">
+                    <label for="orderID" class="form-label">Order:</label>
+                    <select id="orderID" name="orderID" class="form-select" required>
+                        <option value="">Loading orders...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="menuItemID" class="form-label">Menu Item:</label>
+                    <select id="menuItemID" name="menuItemID" class="form-select" required onchange="updatePrice()">
+                        <option value="">Loading menu items...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="itemPrice" class="form-label">Item Price:</label>
+                    <input type="text" id="itemPrice" name="itemPrice" class="form-input" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantity" class="form-label">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" class="form-input" min="1" value="1" required onchange="updateSubtotal()">
+                </div>
+                
+                <div class="form-group">
+                    <label for="subtotal" class="form-label">Subtotal:</label>
+                    <input type="text" id="subtotal" name="subtotal" class="form-input" readonly>
+                </div>
+                
+                <button type="submit" class="form-button">Add Order Detail</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/order-details/view_order_details.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/order-details/view_order_details.html" class="back-link">Back to Order Details</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Global variables to store menu items data
+        let menuItems = [];
+        
+        // Fetch orders and menu items on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, initializing...");
+            
+            try {
+                // Fetch dropdown data
+                const response = await apiRequest('/api/dropdown/menuitems');
+                
+                // Populate dropdowns
+                await populateOrderDropdown(response.orders);
+                await populateMenuItemDropdown(response.menuItems);
+                
+                // Set the menu items array for later use
+                menuItems = response.menuItems;
+                
+                // Initialize price and subtotal
+                updatePrice();
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                showError('Failed to load required data. Please try again.');
+            }
+        });
+        
+        // Populate the order dropdown
+        async function populateOrderDropdown(orders) {
+            const dropdown = document.getElementById('orderID');
+            
+            dropdown.innerHTML = '';
+            
+            if (!orders || orders.length === 0) {
+                dropdown.innerHTML = '<option value="">No orders available</option>';
+                return;
+            }
+            
+            // Add a default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select an order...';
+            dropdown.appendChild(defaultOption);
+            
+            orders.forEach(order => {
+                // Format order date
+                const orderDate = formatDate(order.orderDate);
+                
+                const option = document.createElement('option');
+                option.value = order.orderID;
+                option.textContent = `Order #${order.orderID} - ${order.customerName} (${orderDate})`;
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // Populate the menu item dropdown
+        async function populateMenuItemDropdown(items) {
+            const dropdown = document.getElementById('menuItemID');
+            
+            dropdown.innerHTML = '';
+            
+            if (!items || items.length === 0) {
+                dropdown.innerHTML = '<option value="">No menu items available</option>';
+                return;
+            }
+            
+            // Add a default option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select a menu item...';
+            dropdown.appendChild(defaultOption);
+            
+            items.forEach(item => {
+                // Format price
+                const formattedPrice = formatPrice(item.price);
+                
+                const option = document.createElement('option');
+                option.value = item.menuItemID;
+                option.textContent = `${item.name} (${formattedPrice}) - ${item.category}`;
+                option.dataset.price = item.price; // Store price as data attribute
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // Update price field when menu item changes
+        function updatePrice() {
+            const menuItemSelect = document.getElementById('menuItemID');
+            const priceField = document.getElementById('itemPrice');
+            const selectedOption = menuItemSelect.options[menuItemSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.price) {
+                const price = parseFloat(selectedOption.dataset.price);
+                priceField.value = formatPrice(price);
+                
+                // Also update subtotal
+                updateSubtotal();
+            } else {
+                priceField.value = '';
+                document.getElementById('subtotal').value = '';
+            }
+        }
+        
+        // Update subtotal when quantity changes
+        function updateSubtotal() {
+            const menuItemSelect = document.getElementById('menuItemID');
+            const quantityField = document.getElementById('quantity');
+            const subtotalField = document.getElementById('subtotal');
+            const selectedOption = menuItemSelect.options[menuItemSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.price && quantityField.value) {
+                const price = parseFloat(selectedOption.dataset.price);
+                const quantity = parseInt(quantityField.value);
+                const subtotal = price * quantity;
+                subtotalField.value = formatPrice(subtotal);
+            } else {
+                subtotalField.value = '';
+            }
+        }
+        
+        // Add order detail form submission
+        document.getElementById('addOrderDetailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                orderID: document.getElementById('orderID').value,
+                menuItemID: document.getElementById('menuItemID').value,
+                quantity: document.getElementById('quantity').value
+            };
+            
+            try {
+                const response = await apiRequest('/api/orderdetails', 'POST', formData);
+                
+                showSuccess('Order detail added successfully!');
+                
+                // Reset the form
+                document.getElementById('orderID').selectedIndex = 0;
+                document.getElementById('menuItemID').selectedIndex = 0;
+                document.getElementById('quantity').value = 1;
+                updatePrice(); // Reset price and subtotal
+                
+                // Redirect to view order details after a short delay
+                setTimeout(() => {
+                    navigateTo('/html/order-details/view_order_details.html');
+                }, 1000);
+            } catch (error) {
+                console.error('Error adding order detail:', error);
+                showError('Failed to add order detail: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

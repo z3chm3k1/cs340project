@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Update Delivery - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/deliveries/view_deliveries.html" class="nav-link">Deliveries</a>
+            <a href="/html/deliveries/add_delivery.html" class="nav-link">Add Delivery</a>
+            <a href="/html/deliveries/update_delivery.html" class="nav-link">Update Delivery</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Update Delivery</h1>
+        
+        <!-- Update Delivery Form -->
+        <div class="form-container">
+            <form id="updateDeliveryForm">
+                <div class="form-group">
+                    <label for="deliverySelect" class="form-label">Select Delivery:</label>
+                    <select id="deliverySelect" name="deliverySelect" class="form-select" onchange="loadDeliveryData(this.value)" required>
+                        <option value="">Loading deliveries...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="orderID" class="form-label">Order:</label>
+                    <select id="orderID" name="orderID" class="form-select" required>
+                        <option value="">Loading orders...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="deliveryCompany" class="form-label">Delivery Company:</label>
+                    <select id="deliveryCompany" name="deliveryCompany" class="form-select" required>
+                        <option value="Ubereats">Ubereats</option>
+                        <option value="Doordash">Doordash</option>
+                        <option value="Grubhub">Grubhub</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="deliveryStatus" class="form-label">Delivery Status:</label>
+                    <select id="deliveryStatus" name="deliveryStatus" class="form-select" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Out for Delivery">Out for Delivery</option>
+                        <option value="Delivered">Delivered</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="deliveryTime" class="form-label">Delivery Time:</label>
+                    <input type="datetime-local" id="deliveryTime" name="deliveryTime" class="form-input" required>
+                </div>
+                
+                <button type="submit" class="form-button">Update Delivery</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/deliveries/view_deliveries.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/deliveries/view_deliveries.html" class="back-link">Back to Deliveries</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch deliveries and orders on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, initializing...");
+            
+            // Load data for dropdowns
+            await Promise.all([
+                populateDeliveryDropdown(),
+                populateOrderDropdown()
+            ]);
+        });
+        
+        // Populate the delivery dropdown
+        async function populateDeliveryDropdown() {
+            try {
+                const deliveries = await apiRequest('/api/deliveries');
+                const dropdown = document.getElementById('deliverySelect');
+                
+                dropdown.innerHTML = '';
+                
+                if (deliveries.length === 0) {
+                    dropdown.innerHTML = '<option value="">No deliveries available</option>';
+                    return;
+                }
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a delivery...';
+                dropdown.appendChild(defaultOption);
+                
+                deliveries.forEach(delivery => {
+                    const option = document.createElement('option');
+                    option.value = delivery.deliveryID;
+                    option.textContent = `Delivery #${delivery.deliveryID} - Order #${delivery.orderID} (${delivery.customerName})`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating delivery dropdown:', error);
+                showError('Failed to load deliveries. Please try again.');
+            }
+        }
+        
+        // Populate the order dropdown
+        async function populateOrderDropdown() {
+            try {
+                const orders = await apiRequest('/api/dropdown/orders');
+                const dropdown = document.getElementById('orderID');
+                
+                dropdown.innerHTML = '';
+                
+                if (orders.length === 0) {
+                    dropdown.innerHTML = '<option value="">No orders available</option>';
+                    return;
+                }
+                
+                orders.forEach(order => {
+                    // Format order date
+                    const orderDate = formatDate(order.orderDate);
+                    
+                    const option = document.createElement('option');
+                    option.value = order.orderID;
+                    option.textContent = `Order #${order.orderID} - ${order.customerName} (${orderDate})`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating order dropdown:', error);
+                showError('Failed to load orders. Please try again.');
+            }
+        }
+        
+        // Load delivery data into form
+        async function loadDeliveryData(deliveryID) {
+            if (!deliveryID) {
+                // Clear the form if no delivery selected
+                document.getElementById('orderID').value = '';
+                document.getElementById('deliveryCompany').selectedIndex = 0;
+                document.getElementById('deliveryStatus').selectedIndex = 0;
+                document.getElementById('deliveryTime').value = '';
+                return;
+            }
+            
+            try {
+                const delivery = await apiRequest(`/api/deliveries/${deliveryID}`);
+                
+                document.getElementById('orderID').value = delivery.orderID;
+                document.getElementById('deliveryCompany').value = delivery.deliveryCompany;
+                document.getElementById('deliveryStatus').value = delivery.deliveryStatus;
+                
+                // Format the delivery time for the datetime-local input
+                if (delivery.deliveryTime) {
+                    const date = new Date(delivery.deliveryTime);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    
+                    const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                    document.getElementById('deliveryTime').value = formattedDate;
+                } else {
+                    document.getElementById('deliveryTime').value = '';
+                }
+            } catch (error) {
+                console.error('Error loading delivery data:', error);
+                showError('Failed to load delivery details: ' + error.message);
+            }
+        }
+        
+        // Update delivery form submission
+        document.getElementById('updateDeliveryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const deliveryID = document.getElementById('deliverySelect').value;
+            if (!deliveryID) {
+                showError('Please select a delivery to update.');
+                return;
+            }
+            
+            const formData = {
+                orderID: document.getElementById('orderID').value,
+                deliveryCompany: document.getElementById('deliveryCompany').value,
+                deliveryStatus: document.getElementById('deliveryStatus').value,
+                deliveryTime: document.getElementById('deliveryTime').value
+            };
+            
+            try {
+                await apiRequest(`/api/deliveries/${deliveryID}`, 'PUT', formData);
+                
+                showSuccess('Delivery updated successfully!');
+                
+                // Refresh the dropdown to reflect any changes
+                await populateDeliveryDropdown();
+                
+                // Reset the selection
+                document.getElementById('deliverySelect').value = '';
+                
+                // Clear form fields
+                document.getElementById('orderID').value = '';
+                document.getElementById('deliveryCompany').selectedIndex = 0;
+                document.getElementById('deliveryStatus').selectedIndex = 0;
+                document.getElementById('deliveryTime').value = '';
+            } catch (error) {
+                console.error('Error updating delivery:', error);
+                showError('Failed to update delivery: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

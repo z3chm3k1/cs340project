@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Update Table - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/tables/view_tables.html" class="nav-link">Tables</a>
+            <a href="/html/tables/add_table.html" class="nav-link">Add Table</a>
+            <a href="/html/tables/update_table.html" class="nav-link">Update Table</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Update Table</h1>
+        
+        <!-- Update Table Form -->
+        <div class="form-container">
+            <form id="updateTableForm">
+                <div class="form-group">
+                    <label for="tableSelect" class="form-label">Select Table:</label>
+                    <select id="tableSelect" name="tableSelect" class="form-select" onchange="loadTableData(this.value)" required>
+                        <option value="">Loading tables...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tableNumber" class="form-label">Table Number:</label>
+                    <input type="number" id="tableNumber" name="tableNumber" class="form-input" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="capacity" class="form-label">Capacity:</label>
+                    <input type="number" id="capacity" name="capacity" class="form-input" min="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="availabilityStatus" class="form-label">Availability:</label>
+                    <select id="availabilityStatus" name="availabilityStatus" class="form-select" required>
+                        <option value="true">Available</option>
+                        <option value="false">Not Available</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="form-button">Update Table</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/tables/view_tables.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/tables/view_tables.html" class="back-link">Back to Tables</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch tables and populate dropdown on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, fetching tables...");
+            await populateTableDropdown();
+        });
+        
+        // Populate the table dropdown
+        async function populateTableDropdown() {
+            try {
+                const tables = await apiRequest('/api/tables');
+                const dropdown = document.getElementById('tableSelect');
+                
+                dropdown.innerHTML = '';
+                
+                if (tables.length === 0) {
+                    dropdown.innerHTML = '<option value="">No tables available</option>';
+                    return;
+                }
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select a table...';
+                dropdown.appendChild(defaultOption);
+                
+                tables.forEach(table => {
+                    const option = document.createElement('option');
+                    option.value = table.tableID;
+                    option.textContent = `Table #${table.tableNumber} (Capacity: ${table.Capacity})`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating dropdown:', error);
+                showError('Failed to load tables. Please try again.');
+            }
+        }
+        
+        // Load table data into form
+        async function loadTableData(tableID) {
+            if (!tableID) {
+                // Clear the form if no table selected
+                document.getElementById('tableNumber').value = '';
+                document.getElementById('capacity').value = '';
+                document.getElementById('availabilityStatus').selectedIndex = 0;
+                return;
+            }
+            
+            try {
+                const table = await apiRequest(`/api/tables/${tableID}`);
+                
+                document.getElementById('tableNumber').value = table.tableNumber || '';
+                document.getElementById('capacity').value = table.Capacity || '';
+                document.getElementById('availabilityStatus').value = table.availabilityStatus ? 'true' : 'false';
+            } catch (error) {
+                console.error('Error loading table data:', error);
+                showError('Failed to load table details: ' + error.message);
+            }
+        }
+        
+        // Update table form submission
+        document.getElementById('updateTableForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const tableID = document.getElementById('tableSelect').value;
+            if (!tableID) {
+                showError('Please select a table to update.');
+                return;
+            }
+            
+            const formData = {
+                tableNumber: document.getElementById('tableNumber').value,
+                Capacity: document.getElementById('capacity').value,
+                availabilityStatus: document.getElementById('availabilityStatus').value
+            };
+            
+            try {
+                await apiRequest(`/api/tables/${tableID}`, 'PUT', formData);
+                
+                showSuccess('Table updated successfully!');
+                
+                // Refresh the dropdown to reflect any changes
+                await populateTableDropdown();
+                
+                // Reset the selection
+                document.getElementById('tableSelect').value = '';
+                
+                // Clear form fields
+                document.getElementById('tableNumber').value = '';
+                document.getElementById('capacity').value = '';
+                document.getElementById('availabilityStatus').selectedIndex = 0;
+            } catch (error) {
+                console.error('Error updating table:', error);
+                showError('Failed to update table: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

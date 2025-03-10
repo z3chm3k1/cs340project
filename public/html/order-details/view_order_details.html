@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>View Order Details - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/order-details/view_order_details.html" class="nav-link">Order Details</a>
+            <a href="/html/order-details/add_order_detail.html" class="nav-link">Add Order Detail</a>
+            <a href="/html/order-details/update_order_detail.html" class="nav-link">Update Order Detail</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>View Order Details</h1>
+        
+        <!-- Order Details List Table -->
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Order</th>
+                    <th>Menu Item</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="orderDetailsTableBody">
+                <!-- Order details will be loaded here dynamically -->
+                <tr>
+                    <td colspan="6" class="text-center">Loading order details...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a href="/" class="back-link">Back to Home</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch and display order details on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, fetching order details...");
+            await fetchOrderDetails();
+        });
+        
+        // Fetch all order details and populate the table
+        async function fetchOrderDetails() {
+            try {
+                console.log("Fetching order details from API...");
+                const orderDetails = await apiRequest('/api/orderdetails');
+                
+                // Get the table body
+                const tbody = document.getElementById('orderDetailsTableBody');
+                tbody.innerHTML = ''; // Clear existing rows
+                
+                if (orderDetails.length === 0) {
+                    console.log("No order details found");
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="6" class="text-center">No order details found</td>';
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                orderDetails.forEach(detail => {
+                    const row = document.createElement('tr');
+                    
+                    // Format subtotal as currency
+                    const formattedSubtotal = formatPrice(detail.subTotal);
+                    
+                    row.innerHTML = `
+                        <td>${detail.orderDetailID}</td>
+                        <td>Order #${detail.orderID} (${detail.customerName})</td>
+                        <td>${detail.menuItemName}</td>
+                        <td>${detail.quantity}</td>
+                        <td>${formattedSubtotal}</td>
+                        <td><button class="delete-button" onclick="deleteOrderDetail(${detail.orderDetailID})">Delete</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+                showError('Failed to load order details. Please try again.');
+            }
+        }
+        
+        // Delete order detail
+        async function deleteOrderDetail(orderDetailID) {
+            if (!confirmAction('Are you sure you want to delete this order detail?')) {
+                return;
+            }
+            
+            try {
+                await apiRequest(`/api/orderdetails/${orderDetailID}`, 'DELETE');
+                await fetchOrderDetails();
+                showSuccess('Order detail deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting order detail:', error);
+                showError('Failed to delete order detail: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

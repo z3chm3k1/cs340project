@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Update Order Detail - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/order-details/view_order_details.html" class="nav-link">Order Details</a>
+            <a href="/html/order-details/add_order_detail.html" class="nav-link">Add Order Detail</a>
+            <a href="/html/order-details/update_order_detail.html" class="nav-link">Update Order Detail</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Update Order Detail</h1>
+        
+        <!-- Update Order Detail Form -->
+        <div class="form-container">
+            <form id="updateOrderDetailForm">
+                <div class="form-group">
+                    <label for="orderDetailSelect" class="form-label">Select Order Detail:</label>
+                    <select id="orderDetailSelect" name="orderDetailSelect" class="form-select" onchange="loadOrderDetailData(this.value)" required>
+                        <option value="">Loading order details...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="orderID" class="form-label">Order:</label>
+                    <select id="orderID" name="orderID" class="form-select" required>
+                        <option value="">Loading orders...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="menuItemID" class="form-label">Menu Item:</label>
+                    <select id="menuItemID" name="menuItemID" class="form-select" required onchange="updatePrice()">
+                        <option value="">Loading menu items...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="itemPrice" class="form-label">Item Price:</label>
+                    <input type="text" id="itemPrice" name="itemPrice" class="form-input" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quantity" class="form-label">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" class="form-input" min="1" required onchange="updateSubtotal()">
+                </div>
+                
+                <div class="form-group">
+                    <label for="subtotal" class="form-label">Subtotal:</label>
+                    <input type="text" id="subtotal" name="subtotal" class="form-input" readonly>
+                </div>
+                
+                <button type="submit" class="form-button">Update Order Detail</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/order-details/view_order_details.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/order-details/view_order_details.html" class="back-link">Back to Order Details</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Global variables to store dropdown data
+        let menuItems = [];
+        let orders = [];
+        
+        // Fetch necessary data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, initializing...");
+            
+            try {
+                // Fetch dropdown data
+                const response = await apiRequest('/api/dropdown/menuitems');
+                
+                // Store data for later use
+                orders = response.orders;
+                menuItems = response.menuItems;
+                
+                // Populate dropdowns
+                populateOrderDropdown();
+                populateMenuItemDropdown();
+                
+                // Populate the order detail dropdown
+                await populateOrderDetailDropdown();
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                showError('Failed to load required data. Please try again.');
+            }
+        });
+        
+        // Populate the order dropdown
+        function populateOrderDropdown() {
+            const dropdown = document.getElementById('orderID');
+            
+            dropdown.innerHTML = '';
+            
+            if (orders.length === 0) {
+                dropdown.innerHTML = '<option value="">No orders available</option>';
+                return;
+            }
+            
+            orders.forEach(order => {
+                // Format order date
+                const orderDate = formatDate(order.orderDate);
+                
+                const option = document.createElement('option');
+                option.value = order.orderID;
+                option.textContent = `Order #${order.orderID} - ${order.customerName} (${orderDate})`;
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // Populate the menu item dropdown
+        function populateMenuItemDropdown() {
+            const dropdown = document.getElementById('menuItemID');
+            
+            dropdown.innerHTML = '';
+            
+            if (menuItems.length === 0) {
+                dropdown.innerHTML = '<option value="">No menu items available</option>';
+                return;
+            }
+            
+            menuItems.forEach(item => {
+                // Format price
+                const formattedPrice = formatPrice(item.price);
+                
+                const option = document.createElement('option');
+                option.value = item.menuItemID;
+                option.textContent = `${item.name} (${formattedPrice}) - ${item.category}`;
+                option.dataset.price = item.price; // Store price as data attribute
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // Populate the order detail dropdown
+        async function populateOrderDetailDropdown() {
+            try {
+                const orderDetails = await apiRequest('/api/orderdetails');
+                const dropdown = document.getElementById('orderDetailSelect');
+                
+                dropdown.innerHTML = '';
+                
+                if (orderDetails.length === 0) {
+                    dropdown.innerHTML = '<option value="">No order details available</option>';
+                    return;
+                }
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select an order detail...';
+                dropdown.appendChild(defaultOption);
+                
+                orderDetails.forEach(detail => {
+                    const option = document.createElement('option');
+                    option.value = detail.orderDetailID;
+                    option.textContent = `#${detail.orderDetailID} - Order #${detail.orderID} - ${detail.menuItemName} (Qty: ${detail.quantity})`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating order detail dropdown:', error);
+                showError('Failed to load order details. Please try again.');
+            }
+        }
+        
+        // Load order detail data into form
+        async function loadOrderDetailData(orderDetailID) {
+            if (!orderDetailID) {
+                // Clear the form if no order detail selected
+                document.getElementById('orderID').value = '';
+                document.getElementById('menuItemID').value = '';
+                document.getElementById('quantity').value = '';
+                document.getElementById('itemPrice').value = '';
+                document.getElementById('subtotal').value = '';
+                return;
+            }
+            
+            try {
+                const detail = await apiRequest(`/api/orderdetails/${orderDetailID}`);
+                
+                document.getElementById('orderID').value = detail.orderID;
+                document.getElementById('menuItemID').value = detail.menuItemID;
+                document.getElementById('quantity').value = detail.quantity;
+                
+                // Set the price field
+                const menuItemPrice = parseFloat(detail.menuItemPrice);
+                document.getElementById('itemPrice').value = formatPrice(menuItemPrice);
+                
+                // Set the subtotal field
+                const subtotal = parseFloat(detail.subTotal);
+                document.getElementById('subtotal').value = formatPrice(subtotal);
+            } catch (error) {
+                console.error('Error loading order detail data:', error);
+                showError('Failed to load order detail: ' + error.message);
+            }
+        }
+        
+        // Update price field when menu item changes
+        function updatePrice() {
+            const menuItemSelect = document.getElementById('menuItemID');
+            const priceField = document.getElementById('itemPrice');
+            const selectedOption = menuItemSelect.options[menuItemSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.price) {
+                const price = parseFloat(selectedOption.dataset.price);
+                priceField.value = formatPrice(price);
+                
+                // Also update subtotal
+                updateSubtotal();
+            } else {
+                priceField.value = '';
+                document.getElementById('subtotal').value = '';
+            }
+        }
+        
+        // Update subtotal when quantity changes
+        function updateSubtotal() {
+            const menuItemSelect = document.getElementById('menuItemID');
+            const quantityField = document.getElementById('quantity');
+            const subtotalField = document.getElementById('subtotal');
+            const selectedOption = menuItemSelect.options[menuItemSelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.price && quantityField.value) {
+                const price = parseFloat(selectedOption.dataset.price);
+                const quantity = parseInt(quantityField.value);
+                const subtotal = price * quantity;
+                subtotalField.value = formatPrice(subtotal);
+            } else {
+                subtotalField.value = '';
+            }
+        }
+        
+        // Update order detail form submission
+        document.getElementById('updateOrderDetailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderDetailID = document.getElementById('orderDetailSelect').value;
+            if (!orderDetailID) {
+                showError('Please select an order detail to update.');
+                return;
+            }
+            
+            const formData = {
+                orderID: document.getElementById('orderID').value,
+                menuItemID: document.getElementById('menuItemID').value,
+                quantity: document.getElementById('quantity').value
+            };
+            
+            try {
+                await apiRequest(`/api/orderdetails/${orderDetailID}`, 'PUT', formData);
+                
+                showSuccess('Order detail updated successfully!');
+                
+                // Refresh the dropdown to reflect any changes
+                await populateOrderDetailDropdown();
+                // Reset the selection
+                document.getElementById('orderDetailSelect').value = '';
+                
+                // Clear form fields
+                document.getElementById('orderID').value = '';
+                document.getElementById('menuItemID').value = '';
+                document.getElementById('quantity').value = '';
+                document.getElementById('itemPrice').value = '';
+                document.getElementById('subtotal').value = '';
+            } catch (error) {
+                console.error('Error updating order detail:', error);
+                showError('Failed to update order detail: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

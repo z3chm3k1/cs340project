@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/CrazyPizzaStyle.css">
+    <title>Update Order - Crazy Pizza</title>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1 class="title">Crazy Pizza Order Management</h1>
+        <div class="nav-container">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/html/orders/view_orders.html" class="nav-link">Orders</a>
+            <a href="/html/orders/add_order.html" class="nav-link">Add Order</a>
+            <a href="/html/orders/update_order.html" class="nav-link">Update Order</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h1>Update Order</h1>
+        
+        <!-- Update Order Form -->
+        <div class="form-container">
+            <form id="updateOrderForm">
+                <div class="form-group">
+                    <label for="orderSelect" class="form-label">Select Order:</label>
+                    <select id="orderSelect" name="orderSelect" class="form-select" onchange="loadOrderData(this.value)" required>
+                        <option value="">Loading orders...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customerID" class="form-label">Customer:</label>
+                    <select id="customerID" name="customerID" class="form-select" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="orderType" class="form-label">Order Type:</label>
+                    <select id="orderType" name="orderType" class="form-select" required onchange="toggleTableSelection()">
+                        <option value="Delivery">Delivery</option>
+                        <option value="Pickup">Pickup</option>
+                        <option value="Dine-in">Dine-in</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="tableSelectionDiv" style="display: none;">
+                    <label for="tableID" class="form-label">Table:</label>
+                    <select id="tableID" name="tableID" class="form-select">
+                        <option value="">Loading tables...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="totalAmount" class="form-label">Total Amount ($):</label>
+                    <input type="number" id="totalAmount" name="totalAmount" step="0.01" min="0" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="paymentStatus" class="form-label">Payment Status:</label>
+                    <select id="paymentStatus" name="paymentStatus" class="form-select" required>
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="form-button">Update Order</button>
+                <button type="button" class="form-button cancel-button" onclick="navigateTo('/html/orders/view_orders.html')">Cancel</button>
+            </form>
+        </div>
+
+        <a href="/html/orders/view_orders.html" class="back-link">Back to Orders</a>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/common.js"></script>
+    <script>
+        // Fetch orders, customers and tables on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Page loaded, initializing...");
+            await Promise.all([
+                populateOrderDropdown(),
+                populateCustomerDropdown(),
+                populateTableDropdown()
+            ]);
+        });
+        
+        // Toggle table selection based on order type
+        function toggleTableSelection() {
+            const orderType = document.getElementById('orderType').value;
+            const tableDiv = document.getElementById('tableSelectionDiv');
+            
+            if (orderType === 'Dine-in') {
+                tableDiv.style.display = 'block';
+                document.getElementById('tableID').required = true;
+            } else {
+                tableDiv.style.display = 'none';
+                document.getElementById('tableID').required = false;
+                document.getElementById('tableID').value = "";
+            }
+        }
+        
+        // Populate the order dropdown
+        async function populateOrderDropdown() {
+            try {
+                const orders = await apiRequest('/api/orders');
+                const dropdown = document.getElementById('orderSelect');
+                
+                dropdown.innerHTML = '';
+                
+                if (orders.length === 0) {
+                    dropdown.innerHTML = '<option value="">No orders available</option>';
+                    return;
+                }
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select an order...';
+                dropdown.appendChild(defaultOption);
+                
+                orders.forEach(order => {
+                    const option = document.createElement('option');
+                    option.value = order.orderID;
+                    option.textContent = `Order #${order.orderID} - ${order.customerName}`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating order dropdown:', error);
+                showError('Failed to load orders. Please try again.');
+            }
+        }
+        
+        // Populate the customer dropdown
+        async function populateCustomerDropdown() {
+    try {
+        const dropdown = document.getElementById('customerID');
+        dropdown.innerHTML = '<option value="">Loading customers...</option>';
+        
+        const customers = await apiRequest('/api/customers');
+        
+        dropdown.innerHTML = '';
+        
+        if (!customers || customers.length === 0) {
+            dropdown.innerHTML = '<option value="">No customers available</option>';
+            return;
+        }
+        
+        // Add an option for each customer
+        customers.forEach(customer => {
+            const option = document.createElement('option');
+            option.value = customer.customerID;
+            option.textContent = customer.name;
+            dropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error populating customer dropdown:', error);
+        const dropdown = document.getElementById('customerID');
+        dropdown.innerHTML = '<option value="">Failed to load customers</option>';
+        showError('Failed to load customers. Please check your server connection.');
+    }
+}
+        
+        // Populate the table dropdown
+        async function populateTableDropdown() {
+            try {
+                const tables = await apiRequest('/api/dropdown/tables');
+                const dropdown = document.getElementById('tableID');
+                
+                dropdown.innerHTML = '';
+                
+                // Add empty option for when table is not needed
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = 'None';
+                dropdown.appendChild(emptyOption);
+                
+                if (tables.length === 0) {
+                    return;
+                }
+                
+                tables.forEach(table => {
+                    const option = document.createElement('option');
+                    option.value = table.tableID;
+                    option.textContent = `Table ${table.tableNumber}`;
+                    dropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating table dropdown:', error);
+                showError('Failed to load tables. Please try again.');
+            }
+        }
+        
+        // Load order data into form
+        async function loadOrderData(orderID) {
+            if (!orderID) {
+                // Clear the form if no order selected
+                document.getElementById('customerID').value = '';
+                document.getElementById('orderType').selectedIndex = 0;
+                document.getElementById('tableID').value = '';
+                document.getElementById('totalAmount').value = '';
+                document.getElementById('paymentStatus').selectedIndex = 0;
+                toggleTableSelection();
+                return;
+            }
+            
+            try {
+                const order = await apiRequest(`/api/orders/${orderID}`);
+                
+                document.getElementById('customerID').value = order.customerID;
+                document.getElementById('orderType').value = order.orderType;
+                document.getElementById('totalAmount').value = order.totalAmount;
+                document.getElementById('paymentStatus').value = order.paymentStatus;
+                
+                if (order.orderType === 'Dine-in') {
+                    document.getElementById('tableSelectionDiv').style.display = 'block';
+                    document.getElementById('tableID').value = order.tableID || '';
+                } else {
+                    document.getElementById('tableSelectionDiv').style.display = 'none';
+                    document.getElementById('tableID').value = '';
+                }
+            } catch (error) {
+                console.error('Error loading order data:', error);
+                showError('Failed to load order details: ' + error.message);
+            }
+        }
+        
+        // Update order form submission
+        document.getElementById('updateOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const orderID = document.getElementById('orderSelect').value;
+            if (!orderID) {
+                showError('Please select an order to update.');
+                return;
+            }
+            
+            const orderType = document.getElementById('orderType').value;
+            let tableID = null;
+            
+            if (orderType === 'Dine-in') {
+                tableID = document.getElementById('tableID').value;
+                if (!tableID) {
+                    showError('Please select a table for dine-in orders.');
+                    return;
+                }
+            }
+            
+            const formData = {
+                customerID: document.getElementById('customerID').value,
+                tableID: tableID,
+                orderType: orderType,
+                totalAmount: document.getElementById('totalAmount').value,
+                paymentStatus: document.getElementById('paymentStatus').value
+            };
+            
+            try {
+                await apiRequest(`/api/orders/${orderID}`, 'PUT', formData);
+                
+                showSuccess('Order updated successfully!');
+                
+                // Refresh the dropdown to reflect any changes
+                await populateOrderDropdown();
+                
+                // Reset the selection
+                document.getElementById('orderSelect').value = '';
+                
+                // Clear form fields
+                document.getElementById('customerID').value = '';
+                document.getElementById('orderType').selectedIndex = 0;
+                document.getElementById('tableID').value = '';
+                document.getElementById('totalAmount').value = '';
+                document.getElementById('paymentStatus').selectedIndex = 0;
+                toggleTableSelection();
+            } catch (error) {
+                console.error('Error updating order:', error);
+                showError('Failed to update order: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
